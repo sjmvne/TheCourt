@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="The Court — Giudica le nuove frequentazioni con stile. Green flags, red flags, e sentenze epiche.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <title>The Court ⚖️</title>
+
+  <!-- Google Fonts — Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <header class="app-header" id="appHeader">
+    <h1 class="app-logo" id="headerTitle">
+      <img src="assets/logo.png" alt="" class="logo-icon"> The Court
+    </h1>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Apri menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </header>
+
+
+  <!-- ============================================================
+       SIDEBAR (slide from right)
+       ============================================================ -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Menu</h2>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Chiudi menu">✕</button>
+    </div>
+    <ul class="sidebar-nav">
+      <li>
+        <button class="sidebar-link active" data-view="home">
+          <span class="sidebar-icon">⚖️</span> Nuova Sessione
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-link" data-view="archive">
+          <span class="sidebar-icon">📁</span> Archivio
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-link" data-view="editor">
+          <span class="sidebar-icon">⚙️</span> Editor Regolamento
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-link" data-view="credits">
+          <span class="sidebar-icon">👤</span> Credits
+        </button>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <p class="sidebar-version">v1.2 — The Court</p>
+    </div>
+  </nav>
+
+
+  <!-- ============================================================
+       VIEW: HOME — Intro + soggetto + giudici
+       ============================================================ -->
+  <section class="view active" id="view-home">
+    <div class="view-content">
+      <div class="home-hero">
+        <img src="assets/logo.png" alt="The Court" class="home-logo">
+        <h2 class="home-title">The Court</h2>
+        <p class="home-tagline">Il tribunale più ingiusto (e onesto) d'Italia.</p>
+      </div>
+
+      <div class="home-intro">
+        <p>La tua amica ha una nuova frequentazione e il gruppo ha già un'opinione dopo averlo visto per 0.3 secondi? Perfetto. Qui trasformiamo il giudizio collettivo in scienza — con un punteggio, delle prove e una sentenza definitiva.</p>
+        <p class="home-disclaimer">Niente di personale.*</p>
+        <p class="home-footnote">*Tutto personale.</p>
+      </div>
+
+      <div class="home-form">
+        <div class="form-group">
+          <label for="homeSubjectName" class="form-label">L'imputato/a</label>
+          <input type="text" id="homeSubjectName" class="form-input" placeholder="Chi stiamo giudicando oggi?" maxlength="50">
+        </div>
+        <div class="form-group">
+          <label for="homeJudges" class="form-label">La giuria</label>
+          <input type="text" id="homeJudges" class="form-input" placeholder="Es: Giulia, Marco, Sara" maxlength="120">
+        </div>
+      </div>
+
+      <button class="verdict-btn home-cta" id="startProcessBtn">
+        <span class="verdict-btn-text">SI APRA IL PROCESSO</span>
+        <div class="verdict-btn-glow"></div>
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       VIEW: MAIN — Checklist + Emetti la Sentenza
+       ============================================================ -->
+  <main class="view" id="view-main">
+    <div class="view-content">
+
+      <!-- Checklist Container -->
+      <section class="checklist-section">
+        <h2 class="section-title">
+          <span class="title-icon">✅</span> Green Flags
+        </h2>
+        <div class="checklist-list" id="greenFlagsList"></div>
+
+        <h2 class="section-title section-title--red">
+          <span class="title-icon">🚩</span> Red Flags
+        </h2>
+        <div class="checklist-list" id="redFlagsList"></div>
+      </section>
+
+      <!-- EMETTI LA SENTENZA Button -->
+      <div class="verdict-btn-container">
+        <button class="verdict-btn" id="verdictBtn">
+          <span class="verdict-btn-icon">🔨</span>
+          <span class="verdict-btn-text">EMETTI LA SENTENZA</span>
+          <div class="verdict-btn-glow"></div>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+
+  <!-- ============================================================
+       VIEW: ARCHIVE — Storico soggetti valutati
+       ============================================================ -->
+  <section class="view" id="view-archive">
+    <div class="view-content">
+      <div class="view-header-bar">
+        <h2 class="view-title">📁 Archivio</h2>
+      </div>
+      <div class="archive-empty" id="archiveEmpty">
+        <div class="empty-icon">⚖️</div>
+        <p>Nessun soggetto giudicato.<br>Emetti la tua prima sentenza!</p>
+      </div>
+      <div class="archive-list" id="archiveList"></div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       VIEW: EDITOR — Editor Regolamento
+       ============================================================ -->
+  <section class="view" id="view-editor">
+    <div class="view-content">
+      <div class="view-header-bar">
+        <h2 class="view-title">⚙️ Editor Regolamento</h2>
+      </div>
+
+      <!-- Rules Editor -->
+      <div class="editor-section">
+        <h3 class="editor-section-title">Regole</h3>
+        <p class="editor-section-desc">Aggiungi, modifica o elimina le variabili di valutazione.</p>
+        <div class="editor-list" id="editorRulesList"></div>
+        <button class="editor-add-btn" id="addRuleBtn">
+          <span>＋</span> Aggiungi Regola
+        </button>
+      </div>
+
+      <!-- Labels Editor -->
+      <div class="editor-section">
+        <h3 class="editor-section-title">Etichette</h3>
+        <p class="editor-section-desc">Gestisci le etichette assegnabili ai soggetti.</p>
+        <div class="editor-list" id="editorLabelsList"></div>
+        <div class="editor-add-row">
+          <input type="text" class="editor-input" id="newLabelInput" placeholder="Nuova etichetta..." maxlength="40">
+          <button class="editor-add-btn editor-add-btn--small" id="addLabelBtn">＋</button>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="editor-section editor-section--danger">
+        <h3 class="editor-section-title">⚠️ Zona Pericolosa</h3>
+        <button class="editor-reset-btn" id="resetAllBtn">Ripristina Impostazioni Predefinite</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       VIEW: CREDITS
+       ============================================================ -->
+  <section class="view" id="view-credits">
+    <div class="view-content credits-content">
+      <div class="credits-card">
+        <img src="assets/logo.png" alt="The Court" class="credits-logo">
+        <h2 class="credits-title">The Court</h2>
+        <p class="credits-version">Versione 1.1</p>
+        <div class="credits-divider"></div>
+        <p class="credits-label">Creato da</p>
+        <a href="https://instagram.com/sjmvne" target="_blank" rel="noopener" class="credits-author">@sjmvne</a>
+        <div class="credits-divider"></div>
+        <p class="credits-desc">
+          Un'app goliardica per giudicare le nuove frequentazioni delle tue amiche e amici.
+          Nessun soggetto è stato maltrattato durante la creazione di questa app.
+          <br><em>Forse.</em>
+        </p>
+        <div class="credits-footer">
+          <p>Made with ☕ & cattiveria</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       VERDICT OVERLAY — Animazione "Emetti la Sentenza"
+       ============================================================ -->
+  <div class="verdict-overlay" id="verdictOverlay">
+    <div class="verdict-bg"></div>
+
+    <div class="verdict-stage" id="verdictStage">
+
+      <!-- Phase 2: "ORDINE IN AULA" -->
+      <div class="verdict-text-order" id="verdictTextOrder">
+        ORDINE<br>IN AULA
+      </div>
+
+      <!-- Legacy: kept for JS compatibility -->
+      <div class="verdict-text-intro" id="verdictTextIntro"></div>
+
+      <!-- Gavel -->
+      <div class="verdict-gavel" id="verdictGavel">
+        <svg viewBox="0 0 120 120" class="gavel-svg">
+          <rect x="35" y="92" width="50" height="10" rx="3" fill="#3a3020" opacity="0.6"/>
+          <rect x="38" y="89" width="44" height="7" rx="2" fill="#6b5a30"/>
+          <rect x="55" y="32" width="10" height="56" rx="4" fill="#8a7040"/>
+          <rect x="57" y="34" width="6" height="52" rx="3" fill="#b8963c"/>
+          <rect x="28" y="16" width="64" height="22" rx="6" fill="#8a7040"/>
+          <rect x="31" y="19" width="58" height="16" rx="4" fill="#b8963c"/>
+          <rect x="28" y="22" width="9" height="10" rx="2" fill="#d4a856"/>
+          <rect x="83" y="22" width="9" height="10" rx="2" fill="#d4a856"/>
+        </svg>
+      </div>
+
+      <!-- Flash -->
+      <div class="verdict-flash" id="verdictFlash"></div>
+
+      <!-- Cracks -->
+      <div class="verdict-cracks" id="verdictCracks"></div>
+
+      <!-- Phase 7: "IL VERDETTO" -->
+      <div class="verdict-text-verdict" id="verdictTextVerdict">
+        IL VERDETTO
+      </div>
+
+      <!-- Score -->
+      <div class="verdict-score-container" id="verdictScoreContainer">
+        <div class="verdict-score-label">PUNTEGGIO FINALE</div>
+        <div class="verdict-score-number" id="verdictScoreNumber">0</div>
+        <div class="verdict-score-sub" id="verdictScoreSub"></div>
+      </div>
+
+      <!-- Particles -->
+      <div class="verdict-particles" id="verdictParticles"></div>
+
+      <!-- Glow Ring -->
+      <div class="verdict-glow-ring" id="verdictGlowRing"></div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       SUMMARY MODAL — Scheda riepilogo post-verdetto
+       ============================================================ -->
+  <div class="summary-modal" id="summaryModal">
+    <div class="summary-card" id="summaryCard">
+      <div class="summary-score-badge" id="summaryScoreBadge">0</div>
+      <h2 class="summary-title">Scheda Soggetto</h2>
+
+      <div class="summary-form">
+        <div class="form-group">
+          <label for="subjectName" class="form-label">Nome del Soggetto</label>
+          <input type="text" id="subjectName" class="form-input" placeholder="Es. Marco, La Tipa del Bar..." maxlength="50">
+        </div>
+
+        <div class="form-group">
+          <label for="subjectLabel" class="form-label">Etichetta</label>
+          <select id="subjectLabel" class="form-select">
+            <option value="">— Seleziona —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="subjectNotes" class="form-label">Note</label>
+          <textarea id="subjectNotes" class="form-textarea" placeholder="Annotazioni libere..." rows="3" maxlength="300"></textarea>
+        </div>
+      </div>
+
+      <div class="summary-actions">
+        <button class="btn btn--primary" id="saveSubjectBtn">💾 Salva in Archivio</button>
+        <button class="btn btn--ghost" id="discardSubjectBtn">Scarta</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       RULE EDIT MODAL — Modale per aggiungere/modificare regole
+       ============================================================ -->
+  <div class="modal-overlay" id="ruleModal">
+    <div class="modal-card">
+      <h3 class="modal-title" id="ruleModalTitle">Nuova Regola</h3>
+      <div class="form-group">
+        <label for="ruleText" class="form-label">Testo della regola</label>
+        <input type="text" id="ruleText" class="form-input" placeholder="Es. Ha un sorriso contagioso..." maxlength="80">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valore punti</label>
+        <div class="slider-container" id="sliderContainer">
+          <input type="range" id="ruleValueSlider" class="form-slider" min="-10" max="10" value="0" step="1">
+          <div class="slider-value" id="sliderValue">0</div>
+        </div>
+        <label class="form-checkbox-label">
+          <input type="checkbox" id="ruleManualCheck" class="form-checkbox">
+          <span>Numero manuale</span>
+        </label>
+        <input type="number" id="ruleManualValue" class="form-input form-input--small" style="display:none" placeholder="Es. -15, +20...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn--primary" id="saveRuleBtn">Salva</button>
+        <button class="btn btn--ghost" id="cancelRuleBtn">Annulla</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       TOAST Notification
+       ============================================================ -->
+  <div class="toast" id="toast"></div>
+
+
+  <!-- ============================================================
+       SCRIPTS
+       ============================================================ -->
+  <script src="js/sounds.js"></script>
+  <script src="js/swipe.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/verdict.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+
+</body>
+</html>
