@@ -97,14 +97,19 @@
           <input type="text" id="homeSubjectName" class="form-input" placeholder="Chi stiamo giudicando oggi?" maxlength="50">
         </div>
         <div class="form-group">
-          <label for="homeJudges" class="form-label">La giuria</label>
-          <input type="text" id="homeJudges" class="form-input" placeholder="Es: Giulia, Marco, Sara" maxlength="120">
+          <label class="form-label">La giuria</label>
+          <div class="editor-list" id="homeJudgesList" style="display: none; margin-bottom: 12px;"></div>
+          <div class="editor-add-row">
+            <input type="text" id="homeJudgesInput" class="editor-input" placeholder="Nome giurato..." maxlength="30">
+            <button type="button" class="editor-add-btn editor-add-btn--small" id="addJudgeBtn">＋</button>
+          </div>
         </div>
       </div>
 
-      <button class="verdict-btn home-cta" id="startProcessBtn">
-        <span class="verdict-btn-text">SI APRA IL PROCESSO</span>
-        <div class="verdict-btn-glow"></div>
+      <button class="verdict-btn home-cta cta-wow" id="startProcessBtn">
+        <span class="cta-wow-border"></span>
+        <span class="verdict-btn-text">⚖️ SI APRA IL PROCESSO</span>
+        <div class="cta-wow-particles" id="ctaParticles"></div>
       </button>
     </div>
   </section>
@@ -187,6 +192,7 @@
           <input type="text" class="editor-input" id="newLabelInput" placeholder="Nuova etichetta..." maxlength="40">
           <button class="editor-add-btn editor-add-btn--small" id="addLabelBtn">＋</button>
         </div>
+        <div class="label-color-picker" id="labelColorPicker"></div>
       </div>
 
       <!-- Danger Zone -->
@@ -275,8 +281,9 @@
       <!-- Particles -->
       <div class="verdict-particles" id="verdictParticles"></div>
 
-      <!-- Glow Ring -->
-      <div class="verdict-glow-ring" id="verdictGlowRing"></div>
+      <!-- Continue button -->
+      <div class="verdict-continue-btn" id="verdictContinueBtn">Tocca per continuare →</div>
+
     </div>
   </div>
 
@@ -323,8 +330,8 @@
     <div class="modal-card">
       <h3 class="modal-title" id="ruleModalTitle">Nuova Regola</h3>
       <div class="form-group">
-        <label for="ruleText" class="form-label">Testo della regola</label>
-        <input type="text" id="ruleText" class="form-input" placeholder="Es. Ha un sorriso contagioso..." maxlength="80">
+        <label class="form-label">Testo della regola</label>
+        <textarea id="ruleText" class="form-textarea" placeholder="Es. Ha un sorriso contagioso..." maxlength="200" rows="3" style="resize: vertical;"></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">Valore punti</label>
@@ -336,7 +343,11 @@
           <input type="checkbox" id="ruleManualCheck" class="form-checkbox">
           <span>Numero manuale</span>
         </label>
-        <input type="number" id="ruleManualValue" class="form-input form-input--small" style="display:none" placeholder="Es. -15, +20...">
+        <div class="manual-value-controls" id="manualValueControls" style="display:none;">
+          <button type="button" class="manual-btn manual-btn--minus" id="manualMinus">−</button>
+          <span class="manual-value-display" id="manualValueDisplay">0</span>
+          <button type="button" class="manual-btn manual-btn--plus" id="manualPlus">+</button>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn btn--primary" id="saveRuleBtn">Salva</button>

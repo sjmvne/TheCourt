@@ -1,38 +1,43 @@
 /**
  * ============================================================
- * THE COURT — Editor Module v1.3
+ * THE COURT — Editor Module v1.4
  * ============================================================
- * Gestisce la pagina "Editor Regolamento":
- *   - CRUD per le regole (con swipe-to-delete)
- *   - CRUD per le etichette (con swipe-to-delete)
- *   - Modale per aggiunta/modifica regole
- *   - Slider -10/+10 con opzione "Numero manuale"
+ * v1.4:
+ *   - Rule text field → textarea (multiriga)
+ *   - Manual value → pulsanti +/- colorati
+ *   - Labels → oggetti {text, color}, color picker a palette
  * ============================================================
  */
 
 class EditorManager {
 
   constructor() {
-    this.rulesList    = document.getElementById('editorRulesList');
-    this.labelsList   = document.getElementById('editorLabelsList');
-    this.addRuleBtn   = document.getElementById('addRuleBtn');
-    this.addLabelBtn  = document.getElementById('addLabelBtn');
+    this.rulesList     = document.getElementById('editorRulesList');
+    this.labelsList    = document.getElementById('editorLabelsList');
+    this.addRuleBtn    = document.getElementById('addRuleBtn');
+    this.addLabelBtn   = document.getElementById('addLabelBtn');
     this.newLabelInput = document.getElementById('newLabelInput');
-    this.resetAllBtn  = document.getElementById('resetAllBtn');
+    this.resetAllBtn   = document.getElementById('resetAllBtn');
 
     // Modale regola
-    this.ruleModal       = document.getElementById('ruleModal');
-    this.ruleModalTitle  = document.getElementById('ruleModalTitle');
-    this.ruleText        = document.getElementById('ruleText');
-    this.ruleValueSlider = document.getElementById('ruleValueSlider');
-    this.sliderValue     = document.getElementById('sliderValue');
-    this.ruleManualCheck = document.getElementById('ruleManualCheck');
-    this.ruleManualValue = document.getElementById('ruleManualValue');
-    this.sliderContainer = document.getElementById('sliderContainer');
-    this.saveRuleBtn     = document.getElementById('saveRuleBtn');
-    this.cancelRuleBtn   = document.getElementById('cancelRuleBtn');
+    this.ruleModal         = document.getElementById('ruleModal');
+    this.ruleModalTitle    = document.getElementById('ruleModalTitle');
+    this.ruleText          = document.getElementById('ruleText');
+    this.ruleValueSlider   = document.getElementById('ruleValueSlider');
+    this.sliderValue       = document.getElementById('sliderValue');
+    this.ruleManualCheck   = document.getElementById('ruleManualCheck');
+    this.sliderContainer   = document.getElementById('sliderContainer');
+    this.manualControls    = document.getElementById('manualValueControls');
+    this.manualDisplay     = document.getElementById('manualValueDisplay');
+    this.manualMinus       = document.getElementById('manualMinus');
+    this.manualPlus        = document.getElementById('manualPlus');
+    this.saveRuleBtn       = document.getElementById('saveRuleBtn');
+    this.cancelRuleBtn     = document.getElementById('cancelRuleBtn');
 
-    this._editingRuleId = null;
+    this._editingRuleId  = null;
+    this._manualValue    = 0;
+    this._selectedColor  = '#98989f';
+
     this._bindEvents();
   }
 
@@ -49,7 +54,17 @@ class EditorManager {
     this.ruleManualCheck.addEventListener('change', () => {
       const manual = this.ruleManualCheck.checked;
       this.sliderContainer.style.display = manual ? 'none' : 'flex';
-      this.ruleManualValue.style.display = manual ? 'block' : 'none';
+      this.manualControls.style.display  = manual ? 'flex' : 'none';
+    });
+
+    // +/- buttons
+    this.manualMinus.addEventListener('click', () => {
+      this._manualValue--;
+      this._updateManualDisplay();
+    });
+    this.manualPlus.addEventListener('click', () => {
+      this._manualValue++;
+      this._updateManualDisplay();
     });
 
     this.saveRuleBtn.addEventListener('click', () => this._saveRule());
@@ -128,13 +143,16 @@ class EditorManager {
 
       const item = document.createElement('div');
       item.classList.add('editor-label-item', 'swipe-content');
-      item.innerHTML = `<span class="editor-label-text">${this._escapeHtml(label)}</span>`;
+      item.innerHTML = `
+        <span class="label-color-dot" style="background:${this._escapeHtml(label.color || '#98989f')}"></span>
+        <span class="editor-label-text">${this._escapeHtml(label.text)}</span>
+      `;
 
       wrapper.appendChild(item);
       this.labelsList.appendChild(wrapper);
 
       initSwipe(wrapper, item, () => {
-        storage.deleteLabel(label);
+        storage.deleteLabel(label.text);
         this.renderLabels();
         showToast('Etichetta eliminata');
       });
@@ -155,15 +173,16 @@ class EditorManager {
     if (isOutOfRange) {
       this.ruleManualCheck.checked = true;
       this.sliderContainer.style.display = 'none';
-      this.ruleManualValue.style.display = 'block';
-      this.ruleManualValue.value = value;
+      this.manualControls.style.display  = 'flex';
+      this._manualValue = value;
+      this._updateManualDisplay();
       this.ruleValueSlider.value = 0;
     } else {
       this.ruleManualCheck.checked = false;
       this.sliderContainer.style.display = 'flex';
-      this.ruleManualValue.style.display = 'none';
+      this.manualControls.style.display  = 'none';
       this.ruleValueSlider.value = value;
-      this.ruleManualValue.value = '';
+      this._manualValue = 0;
     }
 
     this._updateSliderDisplay();
@@ -182,8 +201,7 @@ class EditorManager {
 
     let value;
     if (this.ruleManualCheck.checked) {
-      value = parseInt(this.ruleManualValue.value, 10);
-      if (isNaN(value)) { showToast('⚠️ Inserisci un valore numerico valido'); return; }
+      value = this._manualValue;
     } else {
       value = parseInt(this.ruleValueSlider.value, 10);
     }
@@ -201,10 +219,13 @@ class EditorManager {
   }
 
   _addLabel() {
-    const label = this.newLabelInput.value.trim();
-    if (!label) return;
-    if (storage.getLabels().includes(label)) { showToast('⚠️ Etichetta già esistente'); return; }
-    storage.addLabel(label);
+    const text = this.newLabelInput.value.trim();
+    if (!text) return;
+    if (storage.getLabels().find(l => l.text === text)) {
+      showToast('⚠️ Etichetta già esistente');
+      return;
+    }
+    storage.addLabel(text, this._selectedColor);
     this.newLabelInput.value = '';
     this.renderLabels();
     showToast('Etichetta aggiunta');
@@ -215,6 +236,15 @@ class EditorManager {
     const sign = val >= 0 ? '+' : '';
     this.sliderValue.textContent = `${sign}${val}`;
     this.sliderValue.style.color = val > 0 ? 'var(--green)' : val < 0 ? 'var(--red)' : 'var(--text-secondary)';
+  }
+
+  _updateManualDisplay() {
+    const val = this._manualValue;
+    const sign = val >= 0 ? '+' : '';
+    this.manualDisplay.textContent = `${sign}${val}`;
+    this.manualDisplay.style.color = val > 0 ? 'var(--green)' : val < 0 ? 'var(--red)' : 'var(--text-secondary)';
+    this.manualMinus.style.opacity = '1';
+    this.manualPlus.style.opacity  = '1';
   }
 
   _escapeHtml(str) {

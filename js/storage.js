@@ -1,9 +1,9 @@
 /**
  * ============================================================
- * THE COURT — Storage Manager v1.2
+ * THE COURT — Storage Manager v1.3
  * ============================================================
  * Persistenza su localStorage per regole, etichette, archivio.
- * Default flags: Gen-Z style, ironiche e taglienti.
+ * v1.3: Labels extended to { text, color } objects.
  * ============================================================
  */
 
@@ -11,8 +11,22 @@ const STORAGE_KEYS = {
   RULES: 'court_rules',
   LABELS: 'court_labels',
   ARCHIVE: 'court_archive',
-  INITIALIZED: 'court_v12_initialized',
+  INITIALIZED: 'court_v13_initialized',
 };
+
+/* ── Palette colori etichette ───────────────────────────── */
+const LABEL_COLORS = [
+  '#5e5ce6', // indigo
+  '#30d158', // green
+  '#ff453a', // red
+  '#ff9f0a', // orange
+  '#ffd60a', // yellow
+  '#64d2ff', // cyan
+  '#bf5af2', // purple
+  '#ff2d55', // pink
+  '#d4a856', // gold
+  '#98989f', // neutral
+];
 
 /* ── Regole di default — Gen Z Edition ─────────────────── */
 const DEFAULT_RULES = [
@@ -69,22 +83,22 @@ const DEFAULT_RULES = [
   { id: 'r17', text: 'Nota Vocale molesta: tiene il telefono orizzontale davanti alla bocca come se stesse mangiando un tramezzino', value: -1 },
 ];
 
-/* ── Etichette di default ──────────────────────────────── */
+/* ── Etichette di default (con colori) ─────────────────── */
 const DEFAULT_LABELS = [
-  'Conoscenza',
-  'New Entry',
-  'Mr Antipatia',
-  'Mr Simpatia',
-  'Puttana/Puttano',
-  'Da Rivedere',
-  'Ghosting Autorizzato',
-  'Fuckboy Alert',
-  'Casanova dei Poveri',
-  'Red Flag Ambulante 🚩',
-  'Potenziale Keeper 💎',
-  'Golden Retriever Boy 🐕',
-  'Crypto Bro 📈',
-  'Il Mammone 👩‍👦',
+  { text: 'Conoscenza',               color: '#98989f' },
+  { text: 'New Entry',                color: '#64d2ff' },
+  { text: 'Mr Antipatia',             color: '#ff453a' },
+  { text: 'Mr Simpatia',              color: '#30d158' },
+  { text: 'Puttana/Puttano',          color: '#ff2d55' },
+  { text: 'Da Rivedere',              color: '#ff9f0a' },
+  { text: 'Ghosting Autorizzato',     color: '#98989f' },
+  { text: 'Fuckboy Alert',            color: '#ff453a' },
+  { text: 'Casanova dei Poveri',      color: '#ff9f0a' },
+  { text: 'Red Flag Ambulante 🚩',    color: '#ff2d55' },
+  { text: 'Potenziale Keeper 💎',     color: '#30d158' },
+  { text: 'Golden Retriever Boy 🐕',  color: '#ffd60a' },
+  { text: 'Crypto Bro 📈',            color: '#5e5ce6' },
+  { text: 'Il Mammone 👩‍👦',            color: '#bf5af2' },
 ];
 
 
@@ -94,6 +108,9 @@ class StorageManager {
   constructor() {
     if (!this._get(STORAGE_KEYS.INITIALIZED)) {
       this.seedDefaults();
+    } else {
+      // Migrate labels dal vecchio formato stringa al nuovo {text,color}
+      this._migrateLabels();
     }
   }
 
@@ -126,6 +143,16 @@ class StorageManager {
       this._set(STORAGE_KEYS.ARCHIVE, []);
     }
     this._set(STORAGE_KEYS.INITIALIZED, true);
+  }
+
+  /* ─── Migration: string labels → {text, color} ─────── */
+  _migrateLabels() {
+    const raw = this._get(STORAGE_KEYS.LABELS);
+    if (!Array.isArray(raw) || raw.length === 0) return;
+    if (typeof raw[0] === 'string') {
+      const migrated = raw.map(l => ({ text: l, color: '#98989f' }));
+      this._set(STORAGE_KEYS.LABELS, migrated);
+    }
   }
 
   /* ─── RULES ───────────────────────────────────────────── */
@@ -161,17 +188,22 @@ class StorageManager {
   getLabels()         { return this._get(STORAGE_KEYS.LABELS) || []; }
   saveLabels(labels)  { this._set(STORAGE_KEYS.LABELS, labels); }
 
-  addLabel(label) {
+  addLabel(text, color) {
     const labels = this.getLabels();
-    if (!labels.includes(label)) { labels.push(label); this.saveLabels(labels); }
+    if (!labels.find(l => l.text === text)) {
+      labels.push({ text, color: color || '#98989f' });
+      this.saveLabels(labels);
+    }
     return labels;
   }
 
-  deleteLabel(label) {
-    const labels = this.getLabels().filter(l => l !== label);
+  deleteLabel(text) {
+    const labels = this.getLabels().filter(l => l.text !== text);
     this.saveLabels(labels);
     return labels;
   }
+
+  getLabelColors() { return LABEL_COLORS; }
 
   /* ─── ARCHIVE ─────────────────────────────────────────── */
 
@@ -184,7 +216,7 @@ class StorageManager {
       name: entry.name || 'Sconosciuto/a',
       judges: entry.judges || '',
       score: entry.score,
-      label: entry.label || '',
+      label: entry.label || null,   // { text, color } or null
       notes: entry.notes || '',
       selectedRules: entry.selectedRules || [],
       date: new Date().toISOString(),

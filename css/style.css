@@ -366,6 +366,116 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   margin-top: var(--space-md);
 }
 
+/* ── CTA WOW Button ────────────────────────────────────── */
+.cta-wow {
+  position: relative;
+  width: 100%;
+  padding: 22px var(--space-xl);
+  background: linear-gradient(135deg,
+    #1a0533 0%,
+    #0d1a4a 25%,
+    #1a2a0d 50%,
+    #2a1a0d 75%,
+    #1a0533 100%
+  );
+  background-size: 300% 300%;
+  animation: ctaBgShift 6s ease infinite;
+  border-radius: var(--radius-md);
+  border: none;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(212, 168, 86, 0.4),
+    0 4px 40px rgba(94, 92, 230, 0.35),
+    0 0 80px rgba(212, 168, 86, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.cta-wow:active {
+  transform: scale(0.96);
+  box-shadow:
+    0 0 0 1px rgba(212, 168, 86, 0.6),
+    0 2px 20px rgba(94, 92, 230, 0.5),
+    0 0 40px rgba(212, 168, 86, 0.2);
+}
+
+@keyframes ctaBgShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Spinning conic-gradient border */
+.cta-wow-border {
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(var(--radius-md) + 2px);
+  background: conic-gradient(
+    from var(--cta-angle, 0deg),
+    transparent 0deg,
+    #d4a856 60deg,
+    #bf5af2 120deg,
+    #5e5ce6 180deg,
+    #30d158 240deg,
+    #d4a856 300deg,
+    transparent 360deg
+  );
+  animation: ctaBorderSpin 3s linear infinite;
+  z-index: 0;
+  border-radius: calc(var(--radius-md) + 2px);
+}
+
+.cta-wow-border::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: linear-gradient(135deg, #1a0533 0%, #0d1a4a 50%, #1a0533 100%);
+  border-radius: var(--radius-md);
+}
+
+@property --cta-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes ctaBorderSpin {
+  from { --cta-angle: 0deg; }
+  to   { --cta-angle: 360deg; }
+}
+
+.cta-wow .verdict-btn-text {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #f0d080, #d4a856, #bf5af2, #7d7aff);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: ctaTextShift 4s ease infinite alternate;
+  text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(212,168,86,0.5));
+}
+
+@keyframes ctaTextShift {
+  from { background-position: 0% center; }
+  to   { background-position: 100% center; }
+}
+
+.cta-wow-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  z-index: 1;
+}
+
 
 /* ── SECTION TITLES ────────────────────────────────────── */
 .section-title {
@@ -848,6 +958,37 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 
 
+/* ── VERDICT CONTINUE BUTTON ────────────────────────────── */
+.verdict-continue-btn {
+  position: absolute;
+  bottom: max(40px, env(safe-area-inset-bottom, 40px));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 28px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.07);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+  transition: opacity 0.4s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.verdict-continue-btn.show {
+  opacity: 1;
+  pointer-events: auto;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+
 /* ── SUMMARY MODAL ─────────────────────────────────────── */
 .summary-modal {
   position: fixed; inset: 0;
@@ -884,9 +1025,10 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   margin: 0 auto var(--space-lg);
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 1.6rem;
   font-weight: 900;
+  font-variant-numeric: tabular-nums;
   border: 2px solid;
 }
 
@@ -1121,6 +1263,82 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   margin-top: 6px;
 }
 
+/* Archive card tap hint */
+.archive-card-tap {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Accordion flags */
+.archive-accordion {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s var(--ease-out);
+}
+
+.archive-accordion.open {
+  max-height: 600px;
+}
+
+.archive-accordion-inner {
+  padding-top: var(--space-md);
+  border-top: 0.5px solid var(--separator);
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.archive-flag-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.archive-flag-icon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  margin-top: 1px;
+}
+
+.archive-flag-text {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.archive-flag-value {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.archive-flag-value.positive {
+  color: var(--green);
+  background: var(--green-dim);
+}
+.archive-flag-value.negative {
+  color: var(--red);
+  background: var(--red-dim);
+}
+
+/* Label badge supports inline color */
+.archive-label-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 
 /* ── SWIPE-TO-DELETE ───────────────────────────────── */
 .swipe-wrapper {
@@ -1248,7 +1466,8 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;   /* allow multiline in list */
+  line-height: 1.4;
 }
 
 .editor-rule-value {
@@ -1288,6 +1507,94 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 
 .editor-label-text {
   font-size: 0.88rem; font-weight: 400;
+}
+
+/* Label color dot */
+.label-color-dot {
+  width: 10px; height: 10px; min-width: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* Label color picker palette */
+.label-color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: var(--space-sm) 0 var(--space-xs);
+}
+
+.label-color-swatch {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}
+
+.label-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.label-color-swatch.selected {
+  border-color: white;
+  transform: scale(1.2);
+  box-shadow: 0 0 10px white;
+}
+
+/* Manual value +/- controls */
+.manual-value-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-sm);
+  justify-content: center;
+}
+
+.manual-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.manual-btn--plus {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1.5px solid var(--green);
+}
+.manual-btn--plus:active {
+  background: var(--green);
+  color: white;
+  transform: scale(0.92);
+}
+
+.manual-btn--minus {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1.5px solid var(--red);
+}
+.manual-btn--minus:active {
+  background: var(--red);
+  color: white;
+  transform: scale(0.92);
+}
+
+.manual-value-display {
+  font-size: 2rem;
+  font-weight: 900;
+  min-width: 60px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s ease;
 }
 
 .editor-add-btn {

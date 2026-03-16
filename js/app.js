@@ -1,9 +1,9 @@
 /**
  * ============================================================
- * THE COURT — Main Application Controller v1.2
+ * THE COURT — Main Application Controller v1.3
  * ============================================================
  * Flow: Home (intro + soggetto + giuria) → Checklist → Verdetto → Summary → Archivio
- * Fixes: archive deletion, font alignment (header always logo), judges field.
+ * v1.3: archive accordion, cta particles, label color support, judges array.
  * ============================================================
  */
 
@@ -27,6 +27,7 @@ class App {
     this.BASE_SCORE       = 10;
     this.currentSubjectName = '';
     this.currentJudges      = '';
+    this.judgesArray        = [];
 
     // Views
     this.views = {
@@ -50,7 +51,9 @@ class App {
 
     // Home
     this.homeSubjectInput = document.getElementById('homeSubjectName');
-    this.homeJudgesInput  = document.getElementById('homeJudges');
+    this.homeJudgesInput  = document.getElementById('homeJudgesInput');
+    this.homeJudgesList   = document.getElementById('homeJudgesList');
+    this.addJudgeBtn      = document.getElementById('addJudgeBtn');
     this.startProcessBtn  = document.getElementById('startProcessBtn');
 
     // Checklist
@@ -84,6 +87,7 @@ class App {
     this._bindSidebar();
     this._bindVerdict();
     this._bindSummary();
+    this._initLabelColorPicker();
 
     // Render iniziale
     this.renderArchive();
@@ -94,7 +98,22 @@ class App {
   /* ─── HOME ───────────────────────────────────────────── */
 
   _bindHome() {
-    this.startProcessBtn.addEventListener('click', () => {
+    this.addJudgeBtn.addEventListener('click', () => {
+      const name = this.homeJudgesInput.value.trim();
+      if (!name) return;
+      this.judgesArray.push(name);
+      this.homeJudgesInput.value = '';
+      this._renderJudges();
+    });
+
+    this.homeJudgesInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.addJudgeBtn.click();
+      }
+    });
+
+    this.startProcessBtn.addEventListener('click', (e) => {
       const name = this.homeSubjectInput.value.trim();
       if (!name) {
         showToast('⚠️ Inserisci il nome dell\'imputato/a');
@@ -102,15 +121,121 @@ class App {
         return;
       }
 
+      // Se c'è del testo nell'input giuria che non è stato aggiunto, lo aggiungiamo
+      const pendingJudge = this.homeJudgesInput.value.trim();
+      if (pendingJudge) {
+        this.judgesArray.push(pendingJudge);
+        this.homeJudgesInput.value = '';
+        this._renderJudges();
+      }
+
+      // CTA particles burst
+      this._burstCtaParticles(e);
+
       // Salva sessione corrente
       this.currentSubjectName = name;
-      this.currentJudges = this.homeJudgesInput.value.trim();
+      this.currentJudges = this.judgesArray.join(', ');
 
-      // Reset checklist e naviga
-      this._resetChecklist();
-      this.renderChecklist();
-      this.navigateTo('main');
+      // Reset checklist e naviga (con piccolo delay per godere l'animazione)
+      setTimeout(() => {
+        this._resetChecklist();
+        this.renderChecklist();
+        this.navigateTo('main');
+      }, 250);
     });
+  }
+
+  _renderJudges() {
+    this.homeJudgesList.innerHTML = '';
+
+    if (this.judgesArray.length === 0) {
+      this.homeJudgesList.style.display = 'none';
+      return;
+    }
+
+    this.homeJudgesList.style.display = 'flex';
+
+    this.judgesArray.forEach((judge, idx) => {
+      const item = document.createElement('div');
+      item.classList.add('editor-label-item');
+      item.innerHTML = `
+        <span class="editor-label-text">${this._escapeHtml(judge)}</span>
+        <button class="editor-rule-btn delete" type="button" aria-label="Rimuovi">✕</button>
+      `;
+
+      const btn = item.querySelector('.editor-rule-btn');
+      btn.addEventListener('click', () => {
+        this.judgesArray.splice(idx, 1);
+        this._renderJudges();
+      });
+
+      this.homeJudgesList.appendChild(item);
+    });
+  }
+
+  /* ─── CTA Particles ──────────────────────────────────── */
+
+  _burstCtaParticles(clickEvent) {
+    const btn = this.startProcessBtn;
+    const container = btn.querySelector('.cta-wow-particles');
+    if (!container) return;
+
+    const rect = btn.getBoundingClientRect();
+    const colors = ['#d4a856', '#f0d080', '#bf5af2', '#7d7aff', '#30d158', '#ffffff'];
+
+    for (let i = 0; i < 24; i++) {
+      const p = document.createElement('div');
+      const angle = (Math.PI * 2 * i) / 24;
+      const dist  = 30 + Math.random() * 60;
+      const dx    = Math.cos(angle) * dist;
+      const dy    = Math.sin(angle) * dist;
+      const size  = 2 + Math.random() * 4;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      p.style.cssText = `
+        position:absolute;
+        left:50%; top:50%;
+        width:${size}px; height:${size}px;
+        background:${color};
+        border-radius:50%;
+        pointer-events:none;
+        box-shadow:0 0 ${size*2}px ${color};
+      `;
+
+      p.animate([
+        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0)`, opacity: 0 },
+      ], { duration: 500 + Math.random() * 300, easing: 'cubic-bezier(0,0.8,0.5,1)', fill: 'forwards' });
+
+      container.appendChild(p);
+      setTimeout(() => p.remove(), 850);
+    }
+  }
+
+  /* ─── Label Color Picker (Editor) ────────────────────── */
+
+  _initLabelColorPicker() {
+    const picker = document.getElementById('labelColorPicker');
+    if (!picker) return;
+    const colors = storage.getLabelColors();
+    let selected = colors[0];
+
+    colors.forEach(color => {
+      const swatch = document.createElement('div');
+      swatch.className = 'label-color-swatch' + (color === selected ? ' selected' : '');
+      swatch.style.background = color;
+      swatch.title = color;
+      swatch.addEventListener('click', () => {
+        picker.querySelectorAll('.label-color-swatch').forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+        selected = color;
+        editor._selectedColor = color;
+      });
+      picker.appendChild(swatch);
+    });
+
+    // Set default selection
+    editor._selectedColor = selected;
   }
 
   /* ─── Navigazione ────────────────────────────────────── */
@@ -158,6 +283,8 @@ class App {
     if (viewName === 'home') {
       this.homeSubjectInput.value = '';
       this.homeJudgesInput.value = '';
+      this.judgesArray = [];
+      this._renderJudges();
     }
 
     this.currentView = viewName;
@@ -312,18 +439,24 @@ class App {
     this.subjectLabel.innerHTML = '<option value="">— Seleziona —</option>';
     labels.forEach(label => {
       const opt = document.createElement('option');
-      opt.value = label;
-      opt.textContent = label;
+      opt.value = JSON.stringify(label);   // store {text,color} as JSON string
+      opt.textContent = label.text;
       this.subjectLabel.appendChild(opt);
     });
   }
 
   _saveSubject() {
+    // Parse label option value
+    let labelObj = null;
+    if (this.subjectLabel.value) {
+      try { labelObj = JSON.parse(this.subjectLabel.value); } catch (_) { labelObj = null; }
+    }
+
     const entry = {
       name:   this.subjectName.value.trim() || this.currentSubjectName || 'Sconosciuto/a',
       judges: this.currentJudges,
       score:  this.currentScore,
-      label:  this.subjectLabel.value,
+      label:  labelObj,
       notes:  this.subjectNotes.value.trim(),
       selectedRules: Array.from(this.selectedRules),
     };
@@ -370,14 +503,58 @@ class App {
       else if (entry.score < 0) scoreClass = 'score-negative';
 
       const dateStr = this._formatDate(entry.date);
-      const labelBadge = entry.label
-        ? `<span class="archive-label-badge">${this._escapeHtml(entry.label)}</span>`
-        : '';
+
+      // Label badge with color
+      let labelBadge = '';
+      if (entry.label) {
+        const lbl = typeof entry.label === 'string'
+          ? { text: entry.label, color: '#98989f' }
+          : entry.label;
+        const dot = `<span class="label-color-dot" style="background:${this._escapeHtml(lbl.color || '#98989f')}"></span>`;
+        labelBadge = `<span class="archive-label-badge">${dot}${this._escapeHtml(lbl.text)}</span>`;
+      }
+
       const notesHtml = entry.notes
         ? `<p class="archive-card-notes">"${this._escapeHtml(entry.notes)}"</p>`
         : '';
       const judgesHtml = entry.judges
         ? `<p class="archive-card-judges">Giuria: ${this._escapeHtml(entry.judges)}</p>`
+        : '';
+
+      // Build accordion flags from selectedRules
+      let accordionHtml = '';
+      if (entry.selectedRules && entry.selectedRules.length > 0) {
+        const allRules = storage.getRules();
+        const selected = entry.selectedRules
+          .map(id => allRules.find(r => r.id === id))
+          .filter(Boolean);
+        const green = selected.filter(r => r.value >= 0);
+        const red   = selected.filter(r => r.value < 0);
+
+        let rows = '';
+        green.forEach(r => {
+          rows += `<div class="archive-flag-row">
+            <span class="archive-flag-icon">✅</span>
+            <span class="archive-flag-text">${this._escapeHtml(r.text)}</span>
+            <span class="archive-flag-value positive">+${r.value}</span>
+          </div>`;
+        });
+        red.forEach(r => {
+          rows += `<div class="archive-flag-row">
+            <span class="archive-flag-icon">🚩</span>
+            <span class="archive-flag-text">${this._escapeHtml(r.text)}</span>
+            <span class="archive-flag-value negative">${r.value}</span>
+          </div>`;
+        });
+
+        accordionHtml = `<div class="archive-accordion" id="acc-${entry.id}">
+          <div class="archive-accordion-inner">${rows}</div>
+        </div>`;
+      }
+
+      const hasFlagDetails = entry.selectedRules && entry.selectedRules.length > 0;
+      const tapHint = hasFlagDetails
+        ? `<p class="archive-card-tap">▼ Dettagli</p>`
         : '';
 
       // Card content (swipeable)
@@ -394,7 +571,21 @@ class App {
         </div>
         ${judgesHtml}
         ${notesHtml}
+        ${tapHint}
+        ${accordionHtml}
       `;
+
+      // Accordion toggle
+      if (hasFlagDetails) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+          const acc = card.querySelector('.archive-accordion');
+          const hint = card.querySelector('.archive-card-tap');
+          if (!acc) return;
+          const isOpen = acc.classList.toggle('open');
+          if (hint) hint.textContent = isOpen ? '▲ Chiudi' : '▼ Dettagli';
+        });
+      }
 
       wrapper.appendChild(card);
       this.archiveList.appendChild(wrapper);

@@ -1,156 +1,204 @@
 /**
  * ============================================================
- * THE COURT — Verdict Animation Engine v1.3 (Mind-Blowing)
+ * THE COURT — Verdict Animation Engine v2.0
  * ============================================================
- * ~15s cinematic sequence with procedural sound effects.
+ * ~10s cinematic sequence. Shorter, punchier, more cinematic.
  *
- *   Phase 1:  Blackout + rumble                     (0 – 1s)
- *   Phase 2:  "ORDINE IN AULA" text + glow          (1 – 3s)
- *   Phase 3:  Gavel rise + whoosh                    (3 – 3.8s)
- *   Phase 4:  Triple slam (thuds + shake + flash)    (3.8 – 6.5s)
- *   Phase 5:  Cracks spread + crack sound            (6.5 – 7s)
- *   Phase 6:  Dissolve (dramatic silence)            (7 – 7.8s)
- *   Phase 7:  "IL VERDETTO" + reveal chord           (7.8 – 9s)
- *   Phase 8:  Score roulette + tension + ticks       (9 – 12.5s)
- *   Phase 9:  SCORE EXPLODE + final chord + burst    (12.5 – 13.5s)
- *   Phase 10: Subtitle + exit                        (13.5 – 15s)
+ *   Phase 1:  Blackout + deep rumble               (0 – 0.8s)
+ *   Phase 2:  "THE COURT" typewriter               (0.8 – 2.5s)
+ *   Phase 3:  Gavel triple slam                    (2.5 – 5.5s)
+ *   Phase 4:  Color reveal (radial bg)             (5.5 – 6.2s)
+ *   Phase 5:  Score roulette                       (6.2 – 9s)
+ *   Phase 6:  SCORE EXPLODE + subtitle             (9 – 11s)
+ *   Phase 7:  "Tocca per continuare" button        (11s+)
  * ============================================================
  */
 
 class VerdictEngine {
 
   constructor() {
-    this.overlay     = document.getElementById('verdictOverlay');
-    this.stage       = document.getElementById('verdictStage');
-    this.textOrder   = document.getElementById('verdictTextOrder');
-    this.textIntro   = document.getElementById('verdictTextIntro');
-    this.textVerdict = document.getElementById('verdictTextVerdict');
-    this.gavel       = document.getElementById('verdictGavel');
-    this.flash       = document.getElementById('verdictFlash');
-    this.cracks      = document.getElementById('verdictCracks');
-    this.scoreCont   = document.getElementById('verdictScoreContainer');
-    this.scoreNum    = document.getElementById('verdictScoreNumber');
-    this.scoreSub    = document.getElementById('verdictScoreSub');
-    this.particles   = document.getElementById('verdictParticles');
-    this.glowRing    = document.getElementById('verdictGlowRing');
+    this.overlay      = document.getElementById('verdictOverlay');
+    this.stage        = document.getElementById('verdictStage');
+    this.textOrder    = document.getElementById('verdictTextOrder');
+    this.textIntro    = document.getElementById('verdictTextIntro');
+    this.textVerdict  = document.getElementById('verdictTextVerdict');
+    this.gavel        = document.getElementById('verdictGavel');
+    this.flash        = document.getElementById('verdictFlash');
+    this.cracks       = document.getElementById('verdictCracks');
+    this.scoreCont    = document.getElementById('verdictScoreContainer');
+    this.scoreNum     = document.getElementById('verdictScoreNumber');
+    this.scoreSub     = document.getElementById('verdictScoreSub');
+    this.particles    = document.getElementById('verdictParticles');
+    this.glowRing     = document.getElementById('verdictGlowRing');
+    this.continueBtn  = document.getElementById('verdictContinueBtn');
 
     this._rouletteFrame = null;
+    this._onComplete    = null;
+    this._finalScore    = 0;
   }
 
   /* ─── Main Cinematic Sequence ────────────────────────── */
 
   async play(finalScore, onComplete) {
     this._resetAll();
+    this._finalScore = finalScore;
+    this._onComplete = onComplete;
     this.overlay.classList.add('active');
 
-    // ── Phase 1: BLACKOUT + RUMBLE ──────────────────
-    sfx.playRumble(6);
-    await this._wait(1000);
+    // ── Phase 1: BLACKOUT + RUMBLE ─────────────────────
+    sfx.playRumble(4);
+    await this._wait(800);
 
-    // ── Phase 2: "ORDINE IN AULA" ───────────────────
-    this.textOrder.classList.add('animate');
-    // Ambient particles during text
-    this._spawnAmbientParticles(20, 2000);
-    await this._wait(2200);
+    // ── Phase 2: "THE COURT" TYPEWRITER ───────────────
+    this.textOrder.innerHTML = '';
+    this.textOrder.style.opacity = '1';
+    await this._typewriter(this.textOrder, 'ORDINE\nIN AULA', 60);
+    await this._wait(800);
     this.textOrder.classList.add('fade-out');
-    await this._wait(600);
+    await this._wait(450);
+    this.textOrder.style.opacity = '0';
 
-    // ── Phase 3: GAVEL RISE ─────────────────────────
+    // ── Phase 3: GAVEL TRIPLE SLAM ────────────────────
     sfx.playWhoosh();
     this.gavel.classList.add('animate-rise');
-    await this._wait(700);
+    await this._wait(600);
 
-    // ── Phase 4: TRIPLE SLAM ────────────────────────
-
-    // Slam 1 — light
+    // Slam 1
     this.gavel.classList.remove('animate-rise');
-    this.gavel.classList.add('animate-raise');
-    await this._wait(350);
-    sfx.playWhoosh();
-    await this._wait(80);
-    this.gavel.classList.remove('animate-raise');
-    this.gavel.classList.add('animate-slam');
-    sfx.playThud(0.6);
-    this.flash.classList.add('flash-light');
-    this._shake('light');
-    this._vibrate([80]);
-    await this._wait(550);
-    this.flash.className = 'verdict-flash';
-
-    // Slam 2 — medium
-    this.gavel.classList.remove('animate-slam');
     this.gavel.classList.add('animate-raise');
     await this._wait(300);
     sfx.playWhoosh();
-    await this._wait(80);
+    await this._wait(60);
     this.gavel.classList.remove('animate-raise');
     this.gavel.classList.add('animate-slam');
-    sfx.playThud(1.0);
+    sfx.playThud(0.7);
+    this.flash.classList.add('flash-light');
+    this._shake('light');
+    this._vibrate([80]);
+    await this._wait(480);
+    this.flash.className = 'verdict-flash';
+
+    // Slam 2
+    this.gavel.classList.remove('animate-slam');
+    this.gavel.classList.add('animate-raise');
+    await this._wait(280);
+    sfx.playWhoosh();
+    await this._wait(60);
+    this.gavel.classList.remove('animate-raise');
+    this.gavel.classList.add('animate-slam');
+    sfx.playThud(1.1);
     this.flash.classList.add('flash-medium');
     this._shake('medium');
     this._vibrate([120, 40, 80]);
-    await this._wait(550);
+    await this._wait(480);
     this.flash.className = 'verdict-flash';
 
-    // Slam 3 — HEAVY (the culmination)
+    // Slam 3 — HEAVY
     this.gavel.classList.remove('animate-slam');
     this.gavel.classList.add('animate-raise');
-    await this._wait(450);
+    await this._wait(380);
     sfx.playWhoosh();
-    await this._wait(100);
+    await this._wait(80);
     this.gavel.classList.remove('animate-raise');
     this.gavel.classList.add('animate-slam');
-    sfx.playThud(1.6);
+    sfx.playThud(1.8);
     this.flash.classList.add('flash-heavy');
     this._shake('heavy');
     this._vibrate([200, 60, 200, 60, 120]);
-    await this._wait(200);
-
-    // ── Phase 5: CRACKS ─────────────────────────────
     sfx.playCrack();
     this._spawnCracks();
-    await this._wait(600);
+    await this._wait(350);
     this.flash.className = 'verdict-flash';
 
-    // ── Phase 6: DISSOLVE ───────────────────────────
+    // Dissolve gavel + cracks
     this.gavel.classList.add('fade-out');
-    this.cracks.style.transition = 'opacity 0.6s ease';
+    this.cracks.style.transition = 'opacity 0.5s ease';
     this.cracks.style.opacity = '0';
-    await this._wait(800);
+    await this._wait(600);
 
-    // ── Phase 7: "IL VERDETTO" ──────────────────────
-    sfx.playReveal();
-    this.textVerdict.classList.add('animate');
-    this._spawnAmbientParticles(15, 1500);
-    await this._wait(1500);
-    this.textVerdict.classList.add('fade-out');
-    await this._wait(500);
+    // ── Phase 4: COLOR REVEAL ──────────────────────────
+    this._colorReveal(finalScore);
+    await this._wait(700);
 
-    // ── Phase 8: SCORE ROULETTE ─────────────────────
-    sfx.playTension(3);
+    // ── Phase 5: SCORE ROULETTE ────────────────────────
+    sfx.playTension(2.5);
     this.scoreCont.classList.add('animate');
+    this._spawnAmbientParticles(12, 1200);
     await this._roulette(finalScore);
 
-    // ── Phase 9: SCORE EXPLODE ──────────────────────
+    // ── Phase 6: SCORE EXPLODE ─────────────────────────
     sfx.playFinalChord(finalScore >= 0);
     this.scoreNum.classList.add('explode');
     this._vibrate([100]);
     this._spawnParticles(finalScore);
     this._flashGlowRing(finalScore);
     this._screenPulse(finalScore);
-    await this._wait(1200);
 
-    // ── Phase 10: SUBTITLE + EXIT ───────────────────
     this._setScoreSubtitle(finalScore);
+    await this._wait(700);
     this.scoreSub.classList.add('show');
-    await this._wait(2500);
+    await this._wait(1000);
 
-    // Exit
+    // ── Phase 7: CONTINUE BUTTON ───────────────────────
+    this.continueBtn.classList.add('show');
+    this.continueBtn.onclick = () => this._finish();
+
+    // Auto-finish after 5s if user doesn't tap
+    this._autoFinishTimer = setTimeout(() => this._finish(), 5000);
+  }
+
+  _finish() {
+    clearTimeout(this._autoFinishTimer);
+    this.continueBtn.classList.remove('show');
+    this.continueBtn.onclick = null;
+
     this.overlay.classList.remove('active');
-    await this._wait(600);
-    this._resetAll();
+    setTimeout(() => {
+      this._resetAll();
+      if (this._onComplete) this._onComplete(this._finalScore);
+    }, 500);
+  }
 
-    if (onComplete) onComplete(finalScore);
+  /* ─── Color reveal from center ──────────────────────── */
+
+  _colorReveal(score) {
+    const color = score >= 5
+      ? 'rgba(48, 209, 88, 0.18)'
+      : score >= 0
+        ? 'rgba(212, 168, 86, 0.14)'
+        : 'rgba(255, 69, 58, 0.18)';
+    const bg = this.overlay.querySelector('.verdict-bg');
+    bg.style.transition = 'background 0.5s ease';
+    bg.style.background = color;
+    setTimeout(() => {
+      bg.style.transition = 'background 1.5s ease';
+      bg.style.background = '#000';
+    }, 500);
+  }
+
+  /* ─── Typewriter ────────────────────────────────────── */
+
+  _typewriter(el, text, speedMs = 60) {
+    return new Promise(resolve => {
+      el.textContent = '';
+      el.style.fontFamily = 'var(--font-serif)';
+      el.style.color = 'var(--gold)';
+      el.style.fontSize = 'clamp(1.6rem, 7vw, 3.5rem)';
+      el.style.fontWeight = '900';
+      el.style.whiteSpace = 'pre';
+      el.style.textShadow = '0 0 60px var(--gold-glow), 0 0 120px rgba(212,168,86,0.15)';
+      el.style.letterSpacing = '0.06em';
+      el.style.textAlign = 'center';
+
+      let i = 0;
+      const tick = () => {
+        if (i >= text.length) { resolve(); return; }
+        el.textContent += text[i] === '\n' ? '\n' : text[i];
+        i++;
+        setTimeout(tick, speedMs);
+      };
+      tick();
+    });
   }
 
   /* ─── Screen Shake ──────────────────────────────────── */
@@ -215,11 +263,11 @@ class VerdictEngine {
     }
   }
 
-  /* ─── Score Roulette (with ticks) ───────────────────── */
+  /* ─── Score Roulette ─────────────────────────────────  */
 
   _roulette(finalScore) {
     return new Promise(resolve => {
-      const duration  = 3200;
+      const duration  = 2600;
       const startTime = performance.now();
       const range     = Math.max(30, Math.abs(finalScore) + 20);
       let tickCounter = 0;
@@ -234,7 +282,6 @@ class VerdictEngine {
           const offset = (Math.random() - 0.5) * 2 * randomness;
           const displayVal = Math.round(finalScore + offset);
 
-          // Decimals for drama
           if (progress < 0.5) {
             const d = Math.floor(Math.random() * 100).toString().padStart(2, '0');
             this.scoreNum.textContent = `${displayVal}.${d}`;
@@ -247,12 +294,11 @@ class VerdictEngine {
 
           this._colorizeScore(displayVal);
 
-          // Tick sounds (getting slower)
           tickCounter++;
           const tickInterval = Math.floor(2 + eased * 8);
           if (tickCounter % tickInterval === 0) sfx.playTick();
 
-          const nextDelay = 20 + eased * 140;
+          const nextDelay = 16 + eased * 120;
           this._rouletteFrame = setTimeout(() => {
             requestAnimationFrame(animate);
           }, nextDelay);
@@ -372,10 +418,17 @@ class VerdictEngine {
   _wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   _resetAll() {
+    clearTimeout(this._autoFinishTimer);
     if (this._rouletteFrame) { clearTimeout(this._rouletteFrame); this._rouletteFrame = null; }
+
+    // Text elements — reset styles set by typewriter
     this.textOrder.className   = 'verdict-text-order';
+    this.textOrder.textContent = 'ORDINE\nIN AULA';
+    this.textOrder.style = '';
+
     this.textIntro.className   = 'verdict-text-intro';
     this.textVerdict.className = 'verdict-text-verdict';
+
     this.gavel.className       = 'verdict-gavel';
     this.flash.className       = 'verdict-flash';
     this.scoreCont.className   = 'verdict-score-container';
@@ -388,10 +441,16 @@ class VerdictEngine {
     this.cracks.innerHTML      = '';
     this.cracks.style.opacity  = '1';
     this.cracks.style.transition = '';
+
+    if (this.continueBtn) {
+      this.continueBtn.classList.remove('show');
+      this.continueBtn.onclick = null;
+    }
+
     this.stage.classList.remove('shake-light','shake-medium','shake-heavy');
     if (this.glowRing) { this.glowRing.className = 'verdict-glow-ring'; this.glowRing.style.cssText = ''; }
     const bg = this.overlay.querySelector('.verdict-bg');
-    if (bg) { bg.style.background = '#000'; bg.style.transition = ''; }
+    if (bg) { bg.style.background = '#000'; bg.style.transition = ''; bg.style.opacity = ''; }
   }
 }
 
